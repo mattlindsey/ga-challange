@@ -17,7 +17,17 @@
     <body>
         <!-- Add your site or application content here -->
         <h1>GA Challange</h1>
-        <h3>Favorites</h3>
+        <h3 >Favorites</h3>
+
+        <table id="favTable">
+        <% @favorites.each do |value| %>
+        <tr>
+         <tr><td><%= value['name'] %></td></tr>
+        </tr>
+        <% end %>
+        </table>
+        <button id="truncateBtn" class="greenBtn">Clear Favorites</button>
+
         <h3>Movies<h3>
         <p>
           <input id="movieInput" type="text" />

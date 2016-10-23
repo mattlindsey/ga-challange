@@ -1,9 +1,11 @@
-// Get the page elements that will be required to submit the XHR
+// Get the page elements that will be required to submit the various XHRs
 var btnElem = document.getElementById('submitBtn');
 var resultElem = document.getElementById('resultArea');
-var movieElem = document.getElementById('movieInput')
+var movieElem = document.getElementById('movieInput');
+var favTable = document.getElementById('favTable');
+var btnClear = document.getElementById('truncateBtn');
 
-// Create our XMLHttpRequest object through which we make the AJAX request
+// Create our XMLHttpRequest object through which we make the search AJAX request
 var request = new XMLHttpRequest();
 
 // The function that will run when the server sends back the response data.
@@ -31,12 +33,14 @@ request.onreadystatechange = function() {
         str += '<li><ul>';
         for (item in resultObj.Search[i]) {
           if (item === 'Poster') {
-            str += '<li class="greenBtn" onclick=expandPoster(this) data-theurl="' + resultObj.Search[i][item] + '">CLICK ME FOR POSTER!</li>';
+            str += '<li class="greenBtn" onclick=expandPoster(this) data-theurl="'
+                + resultObj.Search[i][item] + '">CLICK ME FOR POSTER!</li>';
           } else {
             str += '<li>' + item + ": " + resultObj.Search[i][item] + '</li>';
           }
           if (item === 'Title') {
-            str += '<button class="greenBtn favoriteBtn" onclick=saveFavorite(this) data-thename="' + resultObj.Search[i][item] + '">Make a Favorite!</button>';
+            str += '<button class="greenBtn favoriteBtn" onclick=saveFavorite(this) data-thename="'
+                + resultObj.Search[i][item] + '">Make a Favorite!</button>';
           }
         }
         str += '</ul></li>';
@@ -75,10 +79,23 @@ function expandPoster(elem) {
 
 // Create our 2nd XMLHttpRequest object through which we make the save request
 var requestSave = new XMLHttpRequest();
-
-// When the favorite button is clicked, create link on screen of favorite
+// When the favorite button is clicked, save & create link on screen of favorite
 function saveFavorite(elem) {
-  var data = {name: elem.dataset.thename}
-  requestSave.open('PUT', '/favorites?name=' + JSON.stringify(data));
-  requestSave.send();
+  var data = JSON.parse('{\"name\": \"' + elem.dataset.thename + '\"}');
+  var str = '{\"name\": \"' + elem.dataset.thename + '\"}';
+  console.log(str);
+  requestSave.open('POST', '/favorites');
+  requestSave.setRequestHeader("Content-Type", "application/json");
+  requestSave.send(str);
+
+  var fav = document.createElement("tr");
+  fav.innerHTML = '<td>' + elem.dataset.thename + '</td>';
+  favTable.appendChild(fav);
 };
+
+// Create our 3nd XMLHttpRequest object through which we make the clear request
+var requestClear = new XMLHttpRequest();
+btnClear.addEventListener('click', function() {
+  requestClear.open('DELETE', '/favorites');
+  requestClear.send();
+});
