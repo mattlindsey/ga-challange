@@ -60,7 +60,7 @@ btnElem.addEventListener('click', function() {
   // Optionally, we pass a third boolean parameter which indicates whether
   // the request is asynchronous (i.e. default true value) or synchronous.
   // The other two optional parameters can be used for authentication purposes.
-  request.open('GET', 'http://www.omdbapi.com/?s=' + movieElem.value, true);
+  request.open('GET', 'https://www.omdbapi.com/?s=' + movieElem.value, true);
   request.send();
 });
 
