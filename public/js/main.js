@@ -1,41 +1,52 @@
-// Get the page elements that will be required
-var movieElem = document.getElementById('movieInput');
+// Get the page elements that will be required to submit the XHR
 var btnElem = document.getElementById('submitBtn');
 var resultElem = document.getElementById('resultArea');
+var movieElem = document.getElementById('movieInput')
 
 // Create our XMLHttpRequest object through which we make the AJAX request
 var request = new XMLHttpRequest();
 
-// Write the function that will run when the server sends back the response data. The XMLHttpRequest object has the onreadystatechange property which stores this function. Every time the state of the request changes, this callback function is executed.
+// The function that will run when the server sends back the response data.
+// The XMLHttpRequest object has the onreadystatechange property which stores
+// this function. Every time the state of the request changes, this callback
+// function is executed.
 request.onreadystatechange = function() {
-  // Monitor a few other properties of the XMLHttpRequest object. First, the readyState property specifies the state of our request. Throughout the AJAX call its value changes and can receive values from 0 to 4 (e.g. the value 4 means that the response data is available to us). Second, the status property indicates whether the request is successful or not (e.g. the value 200 defines a successful request). In this example, assuming that we retrieve the response data and the AJAX call is successful, we update the content of the target element. Otherwise, we display a message with information extracted from the XMLHttpRequest object.
-  if(request.readyState === 4) {
+  // Monitor a few other properties of the XMLHttpRequest object.
+  // First, the readyState property specifies the state of our request.
+  // Throughout the AJAX call its value changes and can receive values from 0 to 4
+  // (e.g. the value 4 means that the response data is available to us).
+  // Second, the status property indicates whether the request is successful or
+  // not (e.g. the value 200 defines a successful request).
+  // In this example, assuming that we retrieve the response data and the AJAX
+  // call is successful, we update the content of the target element.
+  // Otherwise, we display a message with information extracted from the XMLHttpRequest object.
+  if(request.readyState === XMLHttpRequest.DONE ) {
     resultElem.style.border = '1px solid #e8e8e8';
     if(request.status === 200) {
       resultObj = JSON.parse(request.responseText);
 
-      // Loop through the array of ojects returned, appending each field to a string
-      var str = '';
+      // Loop through array of ojects returned, appending each field to a string
+      var str = 'Total Results: ' + resultObj.totalResults + '<br><ol>';
       for (i = 0; i < resultObj.Search.length; i++) {
+        str += '<li><ul>';
         for (item in resultObj.Search[i]) {
-          str += item + ": " + resultObj.Search[i][item] + '<br>';
+          if (item === 'Poster') {
+            str += '<li class="greenBtn" onclick=expandPoster(this) data-theurl="' + resultObj.Search[i][item] + '">CLICK ME FOR POSTER!</li>';
+          } else {
+            str += '<li>' + item + ": " + resultObj.Search[i][item] + '</li>';
+          }
+          if (item === 'Title') {
+            str += '<button class="greenBtn favoriteBtn" onclick=saveFavorite(this) data-thename="' + resultObj.Search[i][item] + '">Make a Favorite!</button>';
+          }
         }
-        str += '<br>';
+        str += '</ul></li>';
       }
-
-      // OR, a little more fancy below:
-      //var str = '';
-      //resultObj.Search.forEach(forFunction);
-      //function forFunction (item, index) {
-      //  for( var key in item ) {
-      //    str += key + ": " + item[key] + '<br>';
-      //  }
-      //  str += '<br>';
-      //}
-
+      str += '</ol>'
+      // Now we create screen elements by setting the html of the resultArea div
       resultElem.innerHTML += str;
     } else {
-      resultElem.innerHTML = 'An error occurred during your request: ' +  request.status + ' ' + request.statusText;
+      resultElem.innerHTML = 'An error occurred during your request: ' +
+        request.status + ' ' + request.statusText;
     }
   }
 }
@@ -49,8 +60,25 @@ btnElem.addEventListener('click', function() {
   // Optionally, we pass a third boolean parameter which indicates whether
   // the request is asynchronous (i.e. default true value) or synchronous.
   // The other two optional parameters can be used for authentication purposes.
-  request.open('GET', 'http://www.omdbapi.com/?s=' + movieElem.value); //'https://s3-us-west-2.amazonaws.com/s.cdpn.io/162656/Bio.txt');
-
-  //this.style.display = 'none';
+  request.open('GET', 'http://www.omdbapi.com/?s=' + movieElem.value, true);
   request.send();
 });
+
+// Create the image of the poster when user clicks on 'CLICK ME FOR POSTER!''
+function expandPoster(elem) {
+  var poster = document.createElement("img");
+  poster.setAttribute("class", "poster");
+  poster.src = elem.dataset.theurl;
+  elem.innerHTML = "";
+  elem.appendChild(poster);
+};
+
+// Create our 2nd XMLHttpRequest object through which we make the save request
+var requestSave = new XMLHttpRequest();
+
+// When the favorite button is clicked, create link on screen of favorite
+function saveFavorite(elem) {
+  var data = {name: elem.dataset.thename}
+  requestSave.open('PUT', '/favorites?name=' + JSON.stringify(data));
+  requestSave.send();
+};
